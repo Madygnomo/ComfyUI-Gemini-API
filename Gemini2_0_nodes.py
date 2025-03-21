@@ -29,7 +29,7 @@ class GeminiImageGenerator:
             },
             "optional": {
                 "seed": ("INT", {"default": 66666666, "min": 0, "max": 2147483647}),
-                "image": ("IMAGE",),
+                "images": ("IMAGE",),
             }
         }
 
@@ -161,8 +161,8 @@ class GeminiImageGenerator:
             traceback.print_exc()
             return None
     
-    def generate_image(self, prompt, api_key, model, aspect_ratio, temperature, seed=66666666, image=None):
-        """生成图像 - 使用简化的API密钥管理，基于比例而非尺寸"""
+    def generate_image(self, prompt, api_key, model, aspect_ratio, temperature, seed=66666666, images=None):
+        """生成图像 - 支持多张参考图片"""
         response_text = ""
         
         # 重置日志消息
@@ -195,13 +195,13 @@ class GeminiImageGenerator:
                 simple_prompt = f"Create a detailed image of: {prompt}."
             elif "Landscape" in aspect_ratio:
                 orientation = "wide rectangular image where width is greater than height"
-                simple_prompt = f"Create a detailed image of: {prompt}. Generate the image as a {orientation}."
+                simple_prompt = f"Generate the image as a {orientation}.Create a detailed image of: {prompt}."
             elif "Portrait" in aspect_ratio:
                 orientation = "tall rectangular image where height is greater than width"
-                simple_prompt = f"Create a detailed image of: {prompt}. Generate the image as a {orientation}."
+                simple_prompt = f"Generate the image as a {orientation}.Create a detailed image of: {prompt}."
             else:  # Square
                 orientation = "square image where width equals height"
-                simple_prompt = f"Create a detailed image of: {prompt}. Generate the image as a {orientation}."
+                simple_prompt = f"Generate the image as a {orientation}.Create a detailed image of: {prompt}."
             
             # 配置生成参数，使用用户指定的温度值
             gen_config = types.GenerateContentConfig(
@@ -213,22 +213,31 @@ class GeminiImageGenerator:
             # 记录温度设置
             self.log(f"使用温度值: {temperature}，种子值: {seed}")
             
-            # 处理参考图像
+            # 处理参考图像 - 修改为处理多张图片
             contents = []
-            has_reference = False
+            reference_images_count = 0
             
-            if image is not None:
+            # 首先添加文本提示
+            text_part = {"text": simple_prompt}
+            contents.append(text_part)
+            
+            # 处理参考图像(单张或多张)
+            if images is not None:
                 try:
-                    # 确保图像格式正确
-                    if len(image.shape) == 4 and image.shape[0] == 1:  # [1, H, W, 3] 格式
-                        # 获取第一帧图像
-                        input_image = image[0].cpu().numpy()
+                    # 确定图像数量
+                    batch_size = images.shape[0]
+                    self.log(f"检测到 {batch_size} 张参考图像")
+                    
+                    # 逐一处理每张图像
+                    for i in range(batch_size):
+                        # 获取单张图像
+                        input_image = images[i].cpu().numpy()
                         
                         # 转换为PIL图像
                         input_image = (input_image * 255).astype(np.uint8)
                         pil_image = Image.fromarray(input_image)
                         
-                        self.log(f"参考图像处理成功，尺寸: {pil_image.width}x{pil_image.height}")
+                        self.log(f"参考图像 {i+1} 处理成功，尺寸: {pil_image.width}x{pil_image.height}")
                         
                         # 直接在内存中处理，不保存为文件
                         img_byte_arr = BytesIO()
@@ -236,26 +245,29 @@ class GeminiImageGenerator:
                         img_byte_arr.seek(0)
                         image_bytes = img_byte_arr.read()
                         
-                        # 添加图像部分和文本部分
+                        # 添加图像部分
                         img_part = {"inline_data": {"mime_type": "image/png", "data": image_bytes}}
-                        txt_part = {"text": simple_prompt + " Use this reference image as style guidance."}
-                        
-                        # 组合内容(图像在前，文本在后)
-                        contents = [img_part, txt_part]
-                        has_reference = True
-                        self.log("参考图像已添加到请求中")
-                    else:
-                        self.log(f"参考图像格式不正确: {image.shape}")
-                        contents = simple_prompt
+                        contents.append(img_part)
+                        reference_images_count += 1
+                    
+                    # 如果有参考图像，添加说明
+                    if reference_images_count > 0:
+                        if reference_images_count == 1:
+                            contents[0]["text"] += " Use this reference image as guidance."
+                        else:
+                            contents[0]["text"] += f" Use these {reference_images_count} reference images as guidance."
+                    
+                    self.log(f"成功添加 {reference_images_count} 张参考图像到请求中")
                 except Exception as img_error:
                     self.log(f"参考图像处理错误: {str(img_error)}")
-                    contents = simple_prompt
+                    # 如果处理图像出错，只使用文本提示
+                    contents = [{"text": simple_prompt}]
             else:
                 # 没有参考图像，只使用文本
-                contents = simple_prompt
+                contents = [{"text": simple_prompt}]
             
             # 打印请求信息
-            self.log(f"请求Gemini API生成图像，种子值: {seed}, 包含参考图像: {has_reference}")
+            self.log(f"请求Gemini API生成图像，种子值: {seed}, 包含参考图像数: {reference_images_count}")
             
             # 调用API
             response = client.models.generate_content(

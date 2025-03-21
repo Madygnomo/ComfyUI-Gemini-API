@@ -40,6 +40,8 @@ Restart ComfyUI after installation
 
 ![alt text](workflow/Gemini-API.png)
 
+![alt text](workflow/Gemini-API-多图.png)
+
 A node that generates images using the Gemini API.
 
 **Input Parameters:**
@@ -51,7 +53,7 @@ A node that generates images using the Gemini API.
 - **aspect_ratio**: Choose image orientation (Free, Landscape, Portrait, Square)
 - **temperature**: Parameter controlling generation diversity (0.0-2.0)
 - **seed** (optional): Random seed for reproducible results
-- **image** (optional): Reference image input for style guidance
+- **images** (optional): Reference image input, supports multiple images
 
 **Outputs:**
 - **image**: Generated image that can be connected to other ComfyUI nodes
@@ -60,8 +62,14 @@ A node that generates images using the Gemini API.
 **Use Cases:**
 - Creating unique concept art
 - Generating images from text descriptions
-- Creating style-consistent new images using reference images
+- Creating style-consistent new images using one or multiple reference images
 - Image editing based on existing images
+
+**Multi-Image Feature:**
+- The node now supports inputting multiple reference images simultaneously
+- Multiple images will be sent together to the Gemini API as style reference
+- The system automatically adjusts the prompt to inform the model about multiple reference images
+- This feature is ideal for mixing multiple styles or providing more reference information
 
 ## Getting API Key
 
@@ -83,7 +91,7 @@ A node that generates images using the Gemini API.
 - Image generation quality and speed depend on Google's server status and your network connection
 - Reference image feature will send your images to Google services, please be aware of privacy implications
 - API key needs to be entered only once, it will be stored in gemini_api_key.txt in the node directory
-- About Image Orientation:Gemini API generates images based on the selected orientation (landscape, portrait, or square), though the model may not always perfectly follow these instructions.
+- About Image Orientation: Gemini API generates images based on the selected orientation (landscape, portrait, or square), though the model may not always perfectly follow these instructions
 
 ## Contact Me
 
