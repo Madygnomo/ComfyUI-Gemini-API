@@ -18,7 +18,7 @@ class GeminiImageGenerator:
             "required": {
                 "prompt": ("STRING", {"multiline": True}),
                 "api_key": ("STRING", {"default": "", "multiline": False}),
-                "model": (["models/gemini-2.0-flash-exp"], {"default": "models/gemini-2.0-flash-exp"}),
+                "model": (["models/gemini-2.0-flash-preview-image-generation","models/gemini-2.0-flash-exp"], {"default": "gemini-2.0-flash-preview-image-generation"}),
                 "aspect_ratio": ([
                     "Free (自由比例)",
                     "Landscape (横屏)",
