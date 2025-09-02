@@ -18,7 +18,7 @@ class GeminiImageGenerator:
             "required": {
                 "prompt": ("STRING", {"multiline": True}),
                 "api_key": ("STRING", {"default": "", "multiline": False}),
-                "model": (["models/gemini-2.0-flash-preview-image-generation","models/gemini-2.0-flash-exp"], {"default": "gemini-2.0-flash-preview-image-generation"}),
+                "model": (["models/gemini-2.0-flash-preview-image-generation", "models/gemini-2.0-flash-exp", "models/gemini-2.5-flash-image-preview"], {"default": "models/gemini-2.5-flash-image-preview"}),
                 "aspect_ratio": ([
                     "Free (自由比例)",
                     "Landscape (横屏)",
@@ -271,7 +271,7 @@ class GeminiImageGenerator:
             
             # 调用API
             response = client.models.generate_content(
-                model="models/gemini-2.0-flash-exp",
+                model=model,
                 contents=contents,
                 config=gen_config
             )
