@@ -20,11 +20,11 @@ class GeminiImageGenerator:
                 "api_key": ("STRING", {"default": "", "multiline": False}),
                 "model": (["models/gemini-2.0-flash-preview-image-generation", "models/gemini-2.0-flash-exp", "models/gemini-2.5-flash-image-preview"], {"default": "models/gemini-2.5-flash-image-preview"}),
                 "aspect_ratio": ([
-                    "Free (自由比例)",
-                    "Landscape (横屏)",
-                    "Portrait (竖屏)",
-                    "Square (方形)",
-                ], {"default": "Free (自由比例)"}),
+                    "Free",
+                    "Landscape",
+                    "Portrait",
+                    "Square",
+                ], {"default": "Free"}),
                 "temperature": ("FLOAT", {"default": 1, "min": 0.0, "max": 2.0, "step": 0.05}),
             },
             "optional": {
@@ -378,5 +378,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "Google-Gemini": "Gemini 2.0 image"
+    "Google-Gemini": "Nano-Banana"
 } 
